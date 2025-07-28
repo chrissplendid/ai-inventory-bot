@@ -29,7 +29,7 @@ def chat():
 
     try:
         completion = client.chat.completions.create(
-            model="gpt-4-1106-preview",  # or gpt-3.5-turbo / gpt-4.1-mini
+            model="gpt-4.1-mini",  # or gpt-3.5-turbo / gpt-4.1-mini
             messages=[
                 {"role": "system", "content": "You are a helpful inventory assistant."},
                 {"role": "user", "content": user_message}
@@ -56,14 +56,26 @@ def analyze_inventory():
     
     return jsonify({'insight': insight})
 
-def generate_inventory_insight(products, sales, purchases):
-    # Simple logic, can be replaced with AI-generated summary
-    return (
-        f"📊 Inventory Summary:\n"
-        f"- Total Products: {len(products)}\n"
-        f"- Sales Orders: {len(sales)}\n"
-        f"- Purchase Orders: {len(purchases)}\n\n"
-        f"You can ask me to identify top-selling items or suggest what to restock!"
-    )
+def generate_inventory_insight(products, sales_orders, purchase_orders):
+    try:
+        prompt = (
+            "You're an expert inventory analyst. Based on the following data, generate a detailed summary, "
+            "top-selling products, slow-moving items, and reorder suggestions:\n\n"
+            f"Products:\n{products}\n\n"
+            f"Sales Orders:\n{sales_orders}\n\n"
+            f"Purchase Orders:\n{purchase_orders}\n"
+        )
+
+        completion = client.chat.completions.create(
+            model="gpt-4.1-mini",
+            messages=[
+                {"role": "system", "content": "You are an AI inventory assistant that provides insights and suggestions."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return completion.choices[0].message.content
+    except Exception as e:
+        return f"❌ Error generating insight: {str(e)}"
+
 
 # Note: No app.run() — Render or Gunicorn handles that
